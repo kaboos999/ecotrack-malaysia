@@ -1,0 +1,79 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>EcoCycle - Submit</title>
+  <link rel="stylesheet" href="assets/styles.css"/>
+</head>
+<body>
+  <div class="container">
+    <div class="nav">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="submit.html">Submit Recycling</a>
+      <a href="#" onclick="logout()">Logout</a>
+    </div>
+
+    <div class="card">
+      <h2>Submit Recycling Entry</h2>
+
+      <label>Waste Type</label>
+      <select id="waste_type">
+        <option>Plastic</option>
+        <option>Glass</option>
+        <option>Paper</option>
+        <option>Metal</option>
+      </select>
+
+      <label>Weight (kg)</label>
+      <input id="weight" type="number" step="0.01" min="0.01" placeholder="e.g., 1.25"/>
+
+      <label>Image Proof</label>
+      <input id="image" type="file" accept="image/*"/>
+
+      <button id="btnSubmit">Submit</button>
+      <div class="error" id="err"></div>
+      <div id="ok"></div>
+    </div>
+  </div>
+
+<script src="assets/api.js"></script>
+<script src="assets/app.js"></script>
+<script>
+requireAuth();
+
+document.getElementById("btnSubmit").onclick = async () => {
+  const err = document.getElementById("err");
+  const ok = document.getElementById("ok");
+  err.textContent = "";
+  ok.textContent = "";
+
+  try {
+    const waste_type = document.getElementById("waste_type").value;
+    const weight = document.getElementById("weight").value;
+    const file = document.getElementById("image").files[0];
+    if (!file) throw new Error("Please upload an image proof");
+
+    const fd = new FormData();
+    fd.append("waste_type", waste_type);
+    fd.append("weight", weight);
+    fd.append("image", file);
+
+    const token = localStorage.getItem("token");
+    const res = await fetch(`${API_BASE}/submissions`, {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${token}` },
+      body: fd
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.message || "Submit failed");
+
+    ok.textContent = `Submitted. Points earned: ${data.points}`;
+  } catch (e) {
+    err.textContent = e.message;
+  }
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>EcoCycle - Register</title>
+  <link rel="stylesheet" href="assets/styles.css"/>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h2>Register</h2>
+      <label>Name</label>
+      <input id="name" type="text" placeholder="Full name"/>
+      <label>Email</label>
+      <input id="email" type="email" placeholder="you@email.com"/>
+      <label>Password (min 8 chars)</label>
+      <input id="password" type="password" placeholder="********"/>
+      <button id="btnRegister">Create account</button>
+      <p>Already have an account? <a href="login.html">Login</a></p>
+      <div class="error" id="err"></div>
+    </div>
+  </div>
+
+<script src="assets/api.js"></script>
+<script>
+document.getElementById("btnRegister").onclick = async () => {
+  const err = document.getElementById("err");
+  err.textContent = "";
+  try {
+    const name = document.getElementById("name").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+
+    await apiFetch("/auth/register", {
+      method: "POST",
+      body: JSON.stringify({ name, email, password })
+    });
+
+    window.location.href = "login.html";
+  } catch (e) {
+    err.textContent = e.message;
+  }
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>EcoCycle - Dashboard</title>
+  <link rel="stylesheet" href="assets/styles.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="nav">
+      <a href="dashboard.html">Dashboard</a>
+      <a href="submit.html">Submit Recycling</a>
+      <a href="#" onclick="logout()">Logout</a>
+    </div>
+
+    <div class="card">
+      <h2>My Dashboard</h2>
+      <div id="welcome"></div>
+      <div class="row">
+        <div class="card">
+          <h3>Total Recycled</h3>
+          <div class="badge" id="totalKg">0 kg</div>
+        </div>
+        <div class="card">
+          <h3>Total Points</h3>
+          <div class="badge" id="totalPoints">0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Monthly Recycling (kg)</h3>
+      <canvas id="chart"></canvas>
+      <div class="error" id="err"></div>
+    </div>
+  </div>
+
+<script src="assets/api.js"></script>
+<script src="assets/app.js"></script>
+<script>
+requireAuth();
+
+const user = getUser();
+document.getElementById("welcome").textContent = user ? `Welcome, ${user.name}` : "Welcome";
+
+(async () => {
+  const err = document.getElementById("err");
+  err.textContent = "";
+  try {
+    const data = await apiFetch("/dashboard/me");
+    document.getElementById("totalKg").textContent = `${data.totals.totalKg.toFixed(2)} kg`;
+    document.getElementById("totalPoints").textContent = `${data.totals.totalPoints}`;
+
+    const labels = data.monthly.map(x => x.month);
+    const values = data.monthly.map(x => x.totalKg);
+
+    new Chart(document.getElementById("chart"), {
+      type: "bar",
+      data: { labels, datasets: [{ label: "Kg Recycled", data: values, backgroundColor: "#0b7a3b" }] },
+      options: { responsive: true }
+    });
+  } catch (e) {
+    err.textContent = e.message;
+  }
+})();
+</script>
+</body>
+</html>

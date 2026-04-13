@@ -1,0 +1,68 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>EcoCycle - Admin</title>
+  <link rel="stylesheet" href="assets/styles.css"/>
+</head>
+<body>
+  <div class="container">
+    <div class="nav">
+      <a href="admin.html">Admin Dashboard</a>
+      <a href="#" onclick="logout()">Logout</a>
+    </div>
+
+    <div class="card">
+      <h2>Admin Dashboard</h2>
+      <div class="row">
+        <div class="card"><h3>Total System Kg</h3><div class="badge" id="sysKg">0</div></div>
+        <div class="card"><h3>Submissions</h3><div class="badge" id="sysSubs">0</div></div>
+      </div>
+      <div class="error" id="err"></div>
+    </div>
+
+    <div class="card">
+      <h3>Users</h3>
+      <div id="users"></div>
+    </div>
+
+    <div class="card">
+      <h3>Recent Submissions (up to 1000)</h3>
+      <div id="subs"></div>
+    </div>
+  </div>
+
+<script src="assets/api.js"></script>
+<script src="assets/app.js"></script>
+<script>
+requireAuth();
+const u = getUser();
+if (!u || u.role !== "admin") window.location.href = "dashboard.html";
+
+function tableFrom(rows, cols) {
+  const head = `<tr>${cols.map(c=>`<th>${c}</th>`).join("")}</tr>`;
+  const body = rows.map(r => `<tr>${cols.map(c=>`<td>${r[c] ?? ""}</td>`).join("")}</tr>`).join("");
+  return `<table border="1" cellpadding="6" cellspacing="0">${head}${body}</table>`;
+}
+
+(async () => {
+  const err = document.getElementById("err");
+  err.textContent = "";
+  try {
+    const stats = await apiFetch("/admin/stats");
+    document.getElementById("sysKg").textContent = `${stats.totals.totalKg.toFixed(2)} kg`;
+    document.getElementById("sysSubs").textContent = `${stats.totals.submissionsCount}`;
+
+    const users = await apiFetch("/admin/users");
+    document.getElementById("users").innerHTML = tableFrom(users, ["id","name","email","role","created_at"]);
+
+    const subs = await apiFetch("/admin/submissions");
+    document.getElementById("subs").innerHTML = tableFrom(subs, ["id","user_id","name","email","waste_type","weight","points","created_at"]);
+  } catch (e) {
+    err.textContent = e.message;
+  }
+})();
+</script>
+</body>
+</html>
